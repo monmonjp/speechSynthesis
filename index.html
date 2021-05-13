@@ -1,0 +1,100 @@
+<html lang="ja">
+<meta charset="UTF-8">
+<title>speechSynthesis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/earlyaccess/notosansjp.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+<body>
+<section>
+    <div class="container">
+        <div class="row m-5">
+            <div class="col">
+
+                <div class="form-group">
+                    <label>テキスト</label>
+                    <textarea rows="3" class="form-control save-edit-col" id="text" placeholder="自由にテキストを入力してください。">
+こんちにはー。
+これが正しい日本人の挨拶です。
+                    </textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>声</label>
+                    <select class="form-control" id="voice">
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>ピッチ</label> [ <span class="val">1</span> ]
+                    <input type='range' class='form-control-range' step='0.1' min='0' max='2' value='1' id='pitch'>
+                </div>
+
+                <div class="form-group">
+                    <label>速度</label> [ <span class="val">1</span> ]
+                    <input type='range' class='form-control-range' step='0.1' min='0' max='2' value='1' id='rate'>
+                </div>
+
+                <div class="form-group">
+                    <label>ボリューム</label> [ <span class="val">1</span> ]
+                    <input type='range' class='form-control-range' step='0.1' min='0' max='2' value='1' id='volume'>
+                </div>
+
+                <div class="form-group mt-5">
+                    <button class="btn btn-primary" id="play-btn">
+                        <i class="fas fa-play mr-1"></i>
+                        再生
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+<script>
+    $(function () {
+
+        const synth = window.speechSynthesis;
+
+        function populateVoiceList() {
+            const voices = synth.getVoices();
+            voices.forEach(function (voice) {
+                if (voice.lang.match('ja')) {
+                    // 日本語だけリストに書き出す（英語を英語ランゲージで喋らせるとものすごく流暢ですよ）
+                    $('#voice').append($('<option>').html(`${voice.name} (${voice.lang})`).val(voice.name));
+                }
+            });
+        }
+
+        populateVoiceList();
+
+        // Chromeでは読み込みタイミングが違うらしく、イベントで処理
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = populateVoiceList;
+        }
+
+        $('#play-btn').on('click', function () {
+            //テキスト読み込み
+            const utterThis = new SpeechSynthesisUtterance($('#text').val());
+            //声を選び
+            utterThis.voice = synth.getVoices().filter(voice => voice.name === $('#voice').val())[0];
+            //ピッチをセット
+            utterThis.pitch = $('#pitch').val();
+            //速度（rate）をセット
+            utterThis.rate = $('#rate').val();
+            //ボリュームもセット
+            utterThis.volume = $('#volume').val();
+
+            //最後に再生（キューに追加する）
+            synth.speak(utterThis);
+        });
+
+        $('.form-control-range').on('change', function () {
+            $(this).prev('.val').html($(this).val());
+        });
+    });
+</script>
+</body>
+</html>
